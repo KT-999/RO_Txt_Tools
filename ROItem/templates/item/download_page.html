@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.css' %}" type="text/css"/>
+<script src="{% static 'jsDirectory/jquery-3.6.1.min.js' %}"></script>
+<style>
+    table.itemTable {
+        width: 90%;
+        border-collapse: collapse;
+        align: center;
+        align-items: center;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    table.itemTable td {
+    {#border: 1px solid #555555;#}
+    }
+
+    details {
+        border: 1px solid #aaa;
+        border-radius: 4px;
+        padding: .5em .5em 0;
+    }
+
+    summary {
+        font-weight: bold;
+        margin: -.5em -.5em 0;
+        padding: .5em;
+    }
+
+    details[open] {
+        padding: .5em;
+    }
+</style>
+<script>
+    function copyToClipBoard(id) {
+
+        let content = document.getElementById(id);
+
+        content.select();
+        document.execCommand('copy');
+
+        alert("已將" + id + "複製!");
+    }
+
+    var details = Array.from(document.querySelectorAll('.details'));
+    details.forEach((detail) => {
+        detail.addEventListener('click', (e) => {
+            var active = details.find(d => d.open);
+            if (!e.currentTarget.open && active) {
+                active.open = false;
+            }
+        });
+    });
+</script>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{% if request.user.is_authenticated %}
+    {% csrf_token %}
+    <table class="itemTable">
+        <tr>
+            <td>
+                <details class="details">
+                    <summary>itemInfo</summary>
+                    <textarea id="itemInfo" style="width: 90%;height: 500px">{{ itemInfo }}</textarea>
+                    <button onclick="copyToClipBoard('itemInfo')">Copy</button>
+                </details>
+                <a></a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <details class="details">
+                    <summary>accessoryid</summary>
+                    <textarea id="accessoryid" style="width: 90%;height: 500px">{{ accessoryid }}</textarea>
+                    <button onclick="copyToClipBoard('accessoryid')">Copy</button>
+                </details>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <details class="details">
+                    <summary>accname</summary>
+                    <textarea id="accname" style="width: 90%;height: 500px">{{ accname }}</textarea>
+                    <button onclick="copyToClipBoard('accname')">Copy</button>
+                </details>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <details class="details">
+                    <summary>cardprefixnametable</summary>
+                    <textarea id="cardprefixnametable"
+                              style="width: 90%;height: 500px">{{ cardprefixnametable }}</textarea>
+                    <button onclick="copyToClipBoard('cardprefixnametable')">Copy</button>
+                </details>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <details class="details">
+                    <summary>num2cardillustnametable</summary>
+                    <textarea id="num2cardillustnametable"
+                              style="width: 90%;height: 500px">{{ cardillustnametable }}</textarea>
+                    <button onclick="copyToClipBoard('num2cardillustnametable')">Copy</button>
+                </details>
+            </td>
+        </tr>
+    </table>
+{% else %}
+    <p>未登入<br/>
+        <a href="/accounts/login/">登入</a></p>
+{% endif %}
+</body>
+</html>

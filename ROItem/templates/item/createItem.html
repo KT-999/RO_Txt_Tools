@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<script src="{% static 'jsDirectory/jquery-3.6.1.min.js' %}"></script>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<script>
+    function createItem() {
+        var itemShow = document.getElementById('item');
+
+        $.ajax({
+            url: '/createitem/',
+            type: 'post',
+            data: {
+                csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val(),
+                item: $('[name="item"]').val(),
+                name: $('[name="name"]').val(),
+                act: $('[name="act"]').val(),
+                caption: $('[name="caption"]').val(),
+                card: $('[name="card"]').val(),
+                view: $('[name=view]').val(),
+                type: $('[name=type]').val(),
+            },
+            success: function (data) {
+                data = JSON.parse(data);
+                let status = data.status
+                let itemShow = document.getElementById('itemShow');
+                let viewShow = document.getElementById('viewShow');
+
+                if (status == "新增成功") {
+                    alert(status);
+                    itemShow.innerHTML = "";
+                    viewShow.innerHTML = "";
+                } else if (status == "此物品編號已存在" || status == "請輸入完整物品資訊" || status == "item只可為數字") {
+                    itemShow.innerHTML = status;
+                } else if (status == "view只可為數字") {
+                    viewShow.innerHTML = status;
+                } else if (status == "請重新登入") {
+                    var createTable = document.getElementById('createTable');
+                    var reload = document.getElementById('reload');
+                    createTable.style.visibility = "hidden"
+                    reload.style.display = ""
+                }
+            }
+        })
+    }
+</script>
+<body>
+<div style="display: none" id="reload">
+    <a>請重新登入</a>
+</div>
+<form action="" method="post" style="visibility: visible" id="createTable">
+    {% csrf_token %}
+    <table>
+        <tr>
+            <td>
+                <a>物品編號</a>
+            </td>
+            <td>
+                <input type="text" value="" id="item" name="item">
+                <a id="itemShow" style="color: #ff0000"></a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a>物品名稱</a>
+            </td>
+            <td>
+                <input type="text" value="" id="name" name="name">
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a>檔案對應名稱</a>
+            </td>
+            <td>
+                <input value="" name="act" id="act">
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a>說明</a>
+            </td>
+            <td>
+                <textarea id="caption" name="caption" style="width: 900px; height: 350px"></textarea>
+{#                <div style=" border: 1px solid #cbcbcb;width: 300px; height: 350px;overflow-y: scroll" contenteditable="true">#}
+{#                    <div style="color: #ff0000; float: left">123</div><div>test</div>#}
+
+                </div>
+            </td>
+
+        </tr>
+        <tr>
+            <td>
+                <a>洞數</a>
+            </td>
+            <td>
+                <select id="card" name="card">
+                    <option selected disabled hidden>請選擇洞數</option>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a>套用view</a>
+            </td>
+            <td>
+                <input type="text" value="" id="view" name="view">
+                <a id="viewShow" style="color: #ff0000"></a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a>種類</a>
+            </td>
+            <td>
+                <select id="type" name="type">
+                    <option selected disabled hidden>請選擇種類</option>
+                    <option>其他</option>
+                    <option>披肩(有外觀)</option>
+                    <option>卡片</option>
+                    <option>頭飾</option>
+                    <option>鑲嵌</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="text-align: center">
+                <input type="button" name="create" id="create" value="資料上傳" onclick="createItem()">
+            </td>
+        </tr>
+    </table>
+</form>
+</body>
+</html>

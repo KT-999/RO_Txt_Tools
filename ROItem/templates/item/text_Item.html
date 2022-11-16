@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<script src="{% static 'jsDirectory/jquery-3.6.1.min.js' %}"></script>
+<style>
+    table.itemTable {
+        width: 90%;
+        border-collapse: collapse;
+        align: center;
+        align-items: center;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    table.itemTable td {
+    {#border: 1px solid #555555;#}
+    }
+
+    details {
+        border: 1px solid #aaa;
+        border-radius: 4px;
+        padding: .5em .5em 0;
+    }
+
+    summary {
+        font-weight: bold;
+        margin: -.5em -.5em 0;
+        padding: .5em;
+    }
+
+    details[open] {
+        padding: .5em;
+    }
+</style>
+<script>
+    function textmode() {
+        let status = 'textmode';
+        let retrxt = document.getElementById('Text_mode').value;
+        let itemInfo = document.getElementById('itemInfo').value;
+        $.ajax({
+            type: "POST",
+            url: '/textItem/',
+            data: {
+                csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val(),
+                retrxt: retrxt.value,
+                status: status,
+                retrxt: retrxt,
+                itemInfo: itemInfo,
+            },
+            success: function (data) {
+                data = JSON.parse(data);
+                let resText = data.resText;
+                document.getElementById('itemInfo').value = resText;
+            }
+        });
+    }
+
+    function itemmode() {
+        let status = 'itemmode';
+        let retrxt = document.getElementById('Item_mode').value;
+        let itemInfo = document.getElementById('itemInfo').value;
+        $.ajax({
+            type: "POST",
+            url: '/textItem/',
+            data: {
+                csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val(),
+                retrxt: retrxt.value,
+                status: status,
+                retrxt: retrxt,
+                itemInfo: itemInfo,
+            },
+            success: function (data) {
+                data = JSON.parse(data);
+                let resText = data.resText;
+                document.getElementById('itemInfo').value = resText;
+            }
+        });
+    }
+
+    function cardmode() {
+        let status = 'cardmode';
+        let itemInfo = document.getElementById('itemInfo').value;
+        let retrxt = document.getElementById('Item_mode').value;
+        $.ajax({
+            type: "POST",
+            url: '/textItem/',
+            data: {
+                csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val(),
+                retrxt: retrxt.value,
+                status: status,
+                retrxt: retrxt,
+                itemInfo: itemInfo,
+            },
+            success: function (data) {
+                data = JSON.parse(data);
+                let cardprefixnametable = data.cardprefixnametable;
+                let num2cardillustnametable = data.num2cardillustnametable;
+                document.getElementById('cardprefixnametable').value = cardprefixnametable;
+                document.getElementById('num2cardillustnametable').value = num2cardillustnametable;
+            }
+        });
+    }
+
+    function hatmode() {
+        let status = 'hatmode';
+        let retrxt = document.getElementById('Item_mode').value;
+        let itemInfo = document.getElementById('itemInfo').value;
+        $.ajax({
+            type: "POST",
+            url: '/textItem/',
+            data: {
+                csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val(),
+                retrxt: retrxt.value,
+                status: status,
+                retrxt: retrxt,
+                itemInfo: itemInfo,
+            },
+            success: function (data) {
+                data = JSON.parse(data);
+                let accessoryid = data.accessoryid;
+                let accname = data.accname;
+                document.getElementById('accessoryid').value = accessoryid;
+                document.getElementById('accname').value = accname;
+            }
+        });
+    }
+
+    function copyToClipBoard(id) {
+
+        let content = document.getElementById(id);
+
+        content.select();
+        document.execCommand('copy');
+
+        alert("已將" + id + "複製!");
+    }
+</script>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{% if request.user.is_authenticated %}
+    {% csrf_token %}
+    <table class="itemTable">
+        <tr>
+            <td>
+                <details class="details">
+                    <summary>Text</summary>
+                    <textarea id="Text_mode" style="width: 70%;height: 200px">text</textarea><br/>
+                    <textarea id="Item_mode" style="width: 70%;height: 200px">itemdb</textarea><br/>
+                    <button onclick="textmode()">文本轉換</button>
+                    <button onclick="itemmode()">view值帶入</button>
+                    <button onclick="hatmode()">頭飾文本產生</button>
+                    <button onclick="cardmode()">卡片文本產生</button>
+                </details>
+                <a></a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <details class="details">
+                    <summary>itemInfo</summary>
+                    <textarea id="itemInfo" style="width: 90%;height: 200px"></textarea>
+                    <button onclick="copyToClipBoard('itemInfo')">Copy</button>
+                </details>
+                <a></a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <details class="details">
+                    <summary>accessoryid</summary>
+                    <textarea id="accessoryid" style="width: 90%;height: 200px">{{ accessoryid }}</textarea>
+                    <button onclick="copyToClipBoard('accessoryid')">Copy</button>
+                </details>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <details class="details">
+                    <summary>accname</summary>
+                    <textarea id="accname" style="width: 90%;height: 200px">{{ accname }}</textarea>
+                    <button onclick="copyToClipBoard('accname')">Copy</button>
+                </details>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <details class="details">
+                    <summary>cardprefixnametable</summary>
+                    <textarea id="cardprefixnametable"
+                              style="width: 90%;height: 200px"></textarea>
+                    <button onclick="copyToClipBoard('cardprefixnametable')">Copy</button>
+                </details>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <details class="details">
+                    <summary>num2cardillustnametable</summary>
+                    <textarea id="num2cardillustnametable"
+                              style="width: 90%;height: 200px"></textarea>
+                    <button onclick="copyToClipBoard('num2cardillustnametable')">Copy</button>
+                </details>
+            </td>
+        </tr>
+    </table>
+{% else %}
+    <p>未登入<br/>
+        <a href="/accounts/login/">登入</a></p>
+{% endif %}
+</body>
+</html>

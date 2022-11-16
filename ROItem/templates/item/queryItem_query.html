@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<script src="{% static 'jsDirectory/jquery-3.6.1.js' %}"></script>
+<style>
+    table.itemTable {
+        width: 80%;
+        border-collapse: collapse;
+        align: center;
+        align-items: center;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    table.itemTable td {
+        border: 1px solid #555555;
+    }
+
+    table.titleTable {
+        width: 80%;
+        align: center;
+        align-items: center;
+        margin-left: auto;
+        margin-right: auto;
+        border-collapse: collapse;
+    }
+
+    table.titleTable td {
+        border: 1px solid #555555;
+    }
+</style>
+<script>
+    function queryItem() {
+        let item = document.getElementById('item');
+        $.ajax({
+            url: '/queryItem/',
+            type: 'post',
+            data: {
+                csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val(),
+                name: $('[name="name"]').val(),
+                item: $(item).val(),
+                type: $('[name="type"]').val(),
+                start: $('[name="start"]').val(),
+                end: $('[name="end"]').val(),
+            },
+            success: function (data) {
+                data = JSON.parse(data);
+                let itemdblist = data.itemdb;
+                let showdata = "";
+                let itemdb;
+                let status = data.status;
+                if (status == "至少輸入一種查詢條件" || status == "日期選項請同時輸入或重整後不輸入日期" || status == "結束日期不可小於起始日期") {
+                    alert(status);
+                }
+                for (let i in itemdblist) {
+                    itemdb = itemdblist[i].fields;
+                    showdata += "<tr><td style='width: 5%'>" + "<input type='checkbox' name='check' value=' " + itemdb.item + "' id='" + itemdb.item + "'>" + "</td><td style='width: 10%'>" +
+                        "<a href=\"/changeItem/?item=" + itemdb.item + "\">" + itemdb.item + "</a>" + "</td><td style='width: 25%'>" + itemdb.name + "</td><td style='width: 5%'>" +
+                        itemdb.card + "</td>" + "<td style='width: 15%'>" + itemdb.view + "</td><td style='width: 15%'>" +
+                        itemdb.creat_user + "</td>" + "<td style='width: 25%'>" + itemdb.last_modify_date + "</td></tr>";
+                }
+                document.getElementById("itemTable").innerHTML = showdata;
+
+            }
+        })
+    }
+
+    function all_checks() {
+        let check = document.getElementsByName('check');
+        if (document.getElementsByName('all_check')[0].checked) {
+            for (let i = 0; i < check.length; i++) {
+                check[i].checked = true;
+            }
+        } else {
+            for (let i = 0; i < check.length; i++) {
+                check[i].checked = false;
+            }
+        }
+    }
+
+    function output() {
+        let check = document.getElementsByName('check');
+        let itemList = document.getElementById('itemList');
+        itemList.value = ""
+        let upDataNew = "ok"
+        for (let i = 0; i < check.length; i++) {
+            if (check[i].checked) {
+                itemList.value = itemList.value + check[i].value + ",";
+            }
+        }
+        if (itemList.value == '') {
+            alert("請勾選選要輸出選項後再進行檔案輸出");
+            return
+        }
+        form1.action = '/download_page/';
+        form1.submit();
+    }
+
+    function deleteItem() {
+        let check = document.getElementsByName('check');
+        let itemList = document.getElementById('itemList');
+        itemList.value = ""
+        let deleteList = ""
+        let upDataNew = "delete"
+        for (let i = 0; i < check.length; i++) {
+            if (check[i].checked) {
+                itemList.value = itemList.value + check[i].value + ",";
+            }
+        }
+        deleteList = itemList.value;
+        deleteList = deleteList.substring(0, deleteList.length - 1);
+        let delete_function_message = "";
+        delete_function_message += "是否刪除以下勾選內容？" + "\n"
+        delete_function_message += deleteList;
+        if (confirm(delete_function_message) == true) {
+            $.ajax({
+                url: '/queryItem/',
+                type: 'post',
+                data: {
+                    csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val(),
+                    itemList: deleteList,
+                    upDataNew: upDataNew,
+                },
+                success: function (data) {
+                    data = JSON.parse(data);
+                    let status = data.status;
+                    if (status == "刪除成功，請重新查詢") {
+                        alert(status);
+                    }
+                }
+            })
+        } else {
+            alert("已取消刪除動作");
+        }
+    }
+</script>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{% if request.user.is_authenticated %}
+    <form name="form1" method="post">
+        {% csrf_token %}
+        <input type="hidden" id="itemList" name="itemList" value="">
+        <table class="titleTable">
+            <tr>
+                <td>
+                    <a>item</a>
+                </td>
+                <td>
+                    <input type="text" id="item" name="item" value="" style="width: 80px;">
+                </td>
+                <td>
+                    <a>物品名稱</a>
+                </td>
+                <td>
+                    <input id="name" name="name" type="text" value="" style="width: 160px;">
+                </td>
+                <td>
+                    <a>起始日期</a>
+                </td>
+                <td>
+                    <input type="date" id="start" name="start">
+                </td>
+                <td>
+                    <a>結束日期</a>
+                </td>
+                <td>
+                    <input type="date" id="end" name="end">
+                </td>
+                <td>
+                    <a>物品種類</a>
+                </td>
+                <td>
+                    <select id="type" name="type">
+                        <option selected disabled hidden>請選擇種類</option>
+                        <option>其他</option>
+                        <option>披肩(有外觀)</option>
+                        <option>卡片</option>
+                        <option>頭飾</option>
+                        <option>鑲嵌</option>
+                    </select>
+                </td>
+                <td>
+                    <input id="query" name="query" type="button" value="查詢" onclick="queryItem()">
+                </td>
+            </tr>
+        </table>
+        <br/>
+        <div style="overflow-y: scroll;height: 75vh">
+            <table class="itemTable">
+                <tr>
+                    <td style="width: 5%">
+                        <input type="checkbox" onclick="all_checks()" name="all_check" id="all_check">
+                    </td>
+                    <td style="width: 10%">
+                        <a>物品編號</a>
+                    </td>
+                    <td style="width: 25%">
+                        <a>物品名稱</a>
+                    </td>
+                    <td style="width: 5%;">
+                        <a>洞數</a>
+                    </td>
+                    <td style="width: 15%;">
+                        <a>view值</a>
+                    </td>
+                    <td style="width: 15%">
+                        <a>編輯者</a>
+                    </td>
+                    <td style="width: 25%">
+                        <a>編輯日期</a>
+                    </td>
+                </tr>
+            </table>
+            <table id="itemTable" class="itemTable">
+            </table>
+        </div>
+        <table class="titleTable">
+            <tr>
+                <td>
+                    <input type="button" value="檔案輸出" onclick="output()">
+                    <input type="button" value="檔案刪除" onclick="deleteItem()">
+                </td>
+            </tr>
+        </table>
+    </form>
+{% else %}
+    <p>未登入<br/>
+        <a href="/accounts/login/">登入</a></p>
+{% endif %}
+</body>
+</html>
