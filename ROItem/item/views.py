@@ -312,43 +312,80 @@ def text_Item(request):
         text = request.POST.get('retrxt')
         req_itemInfo = request.POST.get('itemInfo')
         itemMap = {}
+        item_name_map = {}
+        itemdb_lines = []
         if text:
             resText = strfilter(text)
             resTextList = resText.split('\n')
-            cleaned_lines = []
-            itemdb_lines = []
-            resource_override = ''
-            header_present = False
+
+            def is_itemdb_line(line_text):
+                if not line_text or ',' not in line_text:
+                    return False
+                parts = line_text.split(',')
+                if len(parts) < 3:
+                    return False
+                return parts[0].strip().isdigit()
+
+            for line in resTextList:
+                stripped = line.strip()
+                if is_itemdb_line(stripped):
+                    parts = stripped.split(',')
+                    item_id = parts[0].strip()
+                    if len(parts) > 2 and parts[2].strip():
+                        item_name_map[item_id] = parts[2].strip()
+                    itemdb_lines.append(stripped)
+
+            blocks = []
+            current = None
+            pending_resource = ''
+
+            def start_block(item_id):
+                nonlocal current, pending_resource
+                if current:
+                    blocks.append(current)
+                current = {'id': item_id, 'resource': '', 'desc': []}
+                if pending_resource:
+                    current['resource'] = pending_resource
+                    pending_resource = ''
+
             for line in resTextList:
                 stripped = line.strip()
                 if not stripped:
-                    cleaned_lines.append(line)
                     continue
-                if re.match(r'^\d+#\d*$', stripped):
-                    header_present = True
-                    cleaned_lines.append(stripped)
+                if is_itemdb_line(stripped):
+                    parts = stripped.split(',')
+                    item_id = parts[0].strip()
+                    if not current or current['id'] != item_id or current['desc']:
+                        start_block(item_id)
+                    continue
+                if '#' in stripped and stripped.split('#', 1)[0].isdigit():
+                    header_id, resource = stripped.split('#', 1)
+                    resource = resource.strip()
+                    if not current or current['id'] != header_id or current['desc']:
+                        start_block(header_id)
+                    current['resource'] = resource
                     continue
                 match = re.match(r'^圖檔套用\s*(\d+)$', stripped)
                 if match:
-                    resource_override = match.group(1)
+                    if current:
+                        current['resource'] = match.group(1)
+                    else:
+                        pending_resource = match.group(1)
                     continue
-                if ',' in stripped:
-                    parts = stripped.split(',')
-                    if len(parts) >= 3 and parts[0].strip().isdigit():
-                        itemdb_lines.append(stripped)
-                        continue
-                cleaned_lines.append(stripped)
-            if itemdb_lines and not header_present:
-                first_parts = itemdb_lines[0].split(',')
-                item_id = first_parts[0].strip()
-                resource_name = resource_override
-                if not resource_name and len(first_parts) > 1 and first_parts[1].strip().isdigit():
-                    resource_name = first_parts[1].strip()
-                if resource_name:
-                    cleaned_lines.insert(0, f"{item_id}#{resource_name}")
-                else:
-                    cleaned_lines.insert(0, f"{item_id}#")
-            resTextList = cleaned_lines
+                if current:
+                    current['desc'].append(stripped)
+
+            if current:
+                blocks.append(current)
+
+            if blocks:
+                resTextList = []
+                for block in blocks:
+                    if block['resource']:
+                        resTextList.append(f"{block['id']}#{block['resource']}")
+                    else:
+                        resTextList.append(f"{block['id']}#")
+                    resTextList.extend(block['desc'])
             dataitem = ''
             itemInfo += (r'local tbl = {' + '\n')
             itemInfoShow = ''
@@ -366,15 +403,16 @@ def text_Item(request):
                     dataitem = str.split('#')
                     if not dataitem[0]:
                         continue
+                    item_display_name = item_name_map.get(dataitem[0], dataitem[0])
                     itemInfo += (r'	[' + dataitem[0] + r'] = {' + '\n')
-                    itemInfo += (r'		unidentifiedDisplayName = "' + dataitem[0] + '",' + '\n')
+                    itemInfo += (r'		unidentifiedDisplayName = "' + item_display_name + '",' + '\n')
                     if len(dataitem) > 1 and dataitem[1]:
                         itemInfo += (r'		unidentifiedResourceName  = "' + dataitem[1] + '",' + '\n')
                     else:
                         itemInfo += (r'		unidentifiedResourceName  = "' + dataitem[0] + '",' + '\n')
                     itemInfo += (r'		unidentifiedDescriptionName = {' + '\n')
 
-                    itemInfoShow += (r'		identifiedDisplayName = "' + dataitem[0] + r'",' + '\n')
+                    itemInfoShow += (r'		identifiedDisplayName = "' + item_display_name + r'",' + '\n')
                     if len(dataitem) > 1 and dataitem[1]:
                         itemInfoShow += (r'		identifiedResourceName = "' + dataitem[1] + r'",' + '\n')
                     else:
@@ -407,7 +445,12 @@ def text_Item(request):
                 itemInfo += '	},\n'
             itemInfo += (r'}' + '\n')
             itemInfo += r'return tbl'
-        ret = {'resText': itemInfo, 'url': '/textItem/', 'err': err}
+        ret = {
+            'resText': itemInfo,
+            'itemdb_lines': '\n'.join(itemdb_lines),
+            'url': '/textItem/',
+            'err': err
+        }
         return HttpResponse(json.dumps(ret))
     if status == "itemmode":
         resText = request.POST.get('retrxt')
