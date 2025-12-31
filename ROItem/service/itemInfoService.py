@@ -41,15 +41,6 @@ def item_query(item, name, item_type, start, end):
     return queryDB
 
 
-def item_info_query(item, name):
-    queryData = models.Item_info.objects
-    queryDB = None
-    queryDB = queryData.filter(item=item)
-    if (item != "" and item is not None) and (name == "" or name is None):
-        queryDB = queryData.filter(item=item)
-    return queryDB
-
-
 def item_info_create(Item_Info):
     createData = models.Item_info.objects
     createData.create(item=Item_Info.item, name=Item_Info.name, name_scan=Item_Info.name_scan,

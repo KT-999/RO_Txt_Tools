@@ -1,13 +1,6 @@
 from item import models
 
 
-def accessoryid_query(view_name):
-    createData = models.Accessoryid.objects
-    if view_name:
-        rtn_data = createData.filter(view_name=view_name)
-    return rtn_data
-
-
 def delete_Accessoryid_Table(view_name):
     createData = models.Accessoryid.objects
     createData.filter(view_name__in=view_name).delete()

@@ -18,12 +18,6 @@ def query_num2cardillustnametable(item):
     return queryData
 
 
-def query_num2cardillustnametable(item):
-    createData = models.Num2cardillustnametable.objects
-    queryData = createData.filter(item=item)
-    return queryData
-
-
 def delete_num2cardillustnametable(item):
     createData = models.Num2cardillustnametable.objects
     createData.filter(item=item).delete()
