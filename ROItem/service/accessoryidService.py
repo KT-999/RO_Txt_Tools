@@ -3,7 +3,12 @@ from item import models
 
 def delete_Accessoryid_Table(view_name):
     createData = models.Accessoryid.objects
-    createData.filter(view_name__in=view_name).delete()
+    if not view_name:
+        return
+    if isinstance(view_name, (list, tuple, set)):
+        createData.filter(view_name__in=view_name).delete()
+    else:
+        createData.filter(view_name=view_name).delete()
 
 
 def accessoryid_query(view_name):
