@@ -127,3 +127,33 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+ROItem/api_test/__pycache__/__init__.cpython-310.pyc
+ROItem/api_test/__pycache__/admin.cpython-310.pyc
+ROItem/api_test/__pycache__/apps.cpython-310.pyc
+ROItem/api_test/__pycache__/models.cpython-310.pyc
+ROItem/api_test/__pycache__/serializers.cpython-310.pyc
+ROItem/api_test/__pycache__/views.cpython-310.pyc
+ROItem/api_test/migrations/__pycache__/__init__.cpython-310.pyc
+ROItem/item/__pycache__/__init__.cpython-310.pyc
+ROItem/item/__pycache__/admin.cpython-310.pyc
+ROItem/item/__pycache__/apps.cpython-310.pyc
+ROItem/item/__pycache__/models.cpython-310.pyc
+ROItem/item/__pycache__/views.cpython-310.pyc
+ROItem/item/migrations/__pycache__/__init__.cpython-310.pyc
+ROItem/item/migrations/__pycache__/0001_initial.cpython-310.pyc
+ROItem/item/util/__pycache__/dataUtil.cpython-310.pyc
+ROItem/item/util/__pycache__/itemUtil.cpython-310.pyc
+ROItem/login/__pycache__/__init__.cpython-310.pyc
+ROItem/login/__pycache__/admin.cpython-310.pyc
+ROItem/login/__pycache__/apps.cpython-310.pyc
+ROItem/login/__pycache__/views.cpython-310.pyc
+ROItem/login/migrations/__pycache__/__init__.cpython-310.pyc
+ROItem/ROItem/__pycache__/__init__.cpython-310.pyc
+ROItem/ROItem/__pycache__/settings.cpython-310.pyc
+ROItem/ROItem/__pycache__/urls.cpython-310.pyc
+ROItem/ROItem/__pycache__/wsgi.cpython-310.pyc
+ROItem/service/__pycache__/accessoryidService.cpython-310.pyc
+ROItem/service/__pycache__/accnameService.cpython-310.pyc
+ROItem/service/__pycache__/cardprefixnametableService.cpython-310.pyc
+ROItem/service/__pycache__/itemInfoService.cpython-310.pyc
+ROItem/service/__pycache__/num2cardillustnametableService.cpython-310.pyc
