@@ -33,11 +33,8 @@
     }
 </style>
 <script>
-    function textmode() {
-        let status = 'textmode';
-        let retrxt = document.getElementById('Text_mode').value;
-        let itemInfo = document.getElementById('itemInfo').value;
-        $.ajax({
+    function requestTextItem(status, retrxt, itemInfo) {
+        return $.ajax({
             type: "POST",
             url: '/textItem/',
             data: {
@@ -45,96 +42,83 @@
                 retrxt: retrxt,
                 status: status,
                 itemInfo: itemInfo,
-            },
-            success: function (data) {
-                data = JSON.parse(data);
-                let resText = data.resText;
-                document.getElementById('itemInfo').value = resText;
-                if (data.itemdb_lines) {
-                    let itemArea = document.getElementById('Item_mode');
-                    let existingItemLines = itemArea.value.split('\n').map(line => line.trim()).filter(Boolean);
-                    let existingSet = new Set(existingItemLines);
-                    let newLines = data.itemdb_lines.split('\n').map(line => line.trim()).filter(Boolean);
-                    let merged = existingItemLines.slice();
-                    for (let line of newLines) {
-                        if (!existingSet.has(line)) {
-                            merged.push(line);
-                        }
-                    }
-                    itemArea.value = merged.join('\n');
-                }
             }
+        });
+    }
+
+    function mergeItemModeLines(itemdbLines) {
+        if (!itemdbLines) {
+            return;
+        }
+        let itemArea = document.getElementById('Item_mode');
+        let existingItemLines = itemArea.value.split('\n').map(line => line.trim()).filter(Boolean);
+        let existingSet = new Set(existingItemLines);
+        let newLines = itemdbLines.split('\n').map(line => line.trim()).filter(Boolean);
+        let merged = existingItemLines.slice();
+        for (let line of newLines) {
+            if (!existingSet.has(line)) {
+                merged.push(line);
+            }
+        }
+        itemArea.value = merged.join('\n');
+    }
+
+    function textmode() {
+        let retrxt = document.getElementById('Text_mode').value;
+        let itemInfo = document.getElementById('itemInfo').value;
+        return requestTextItem('textmode', retrxt, itemInfo).done(function (data) {
+            data = JSON.parse(data);
+            let resText = data.resText;
+            document.getElementById('itemInfo').value = resText;
+            mergeItemModeLines(data.itemdb_lines);
         });
     }
 
     function itemmode() {
-        let status = 'itemmode';
         let retrxt = document.getElementById('Item_mode').value;
         let itemInfo = document.getElementById('itemInfo').value;
-        $.ajax({
-            type: "POST",
-            url: '/textItem/',
-            data: {
-                csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val(),
-                retrxt: retrxt.value,
-                status: status,
-                retrxt: retrxt,
-                itemInfo: itemInfo,
-            },
-            success: function (data) {
-                data = JSON.parse(data);
-                let resText = data.resText;
-                document.getElementById('itemInfo').value = resText;
-            }
+        return requestTextItem('itemmode', retrxt, itemInfo).done(function (data) {
+            data = JSON.parse(data);
+            let resText = data.resText;
+            document.getElementById('itemInfo').value = resText;
         });
     }
 
     function cardmode() {
-        let status = 'cardmode';
         let itemInfo = document.getElementById('itemInfo').value;
         let retrxt = document.getElementById('Item_mode').value;
-        $.ajax({
-            type: "POST",
-            url: '/textItem/',
-            data: {
-                csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val(),
-                retrxt: retrxt.value,
-                status: status,
-                retrxt: retrxt,
-                itemInfo: itemInfo,
-            },
-            success: function (data) {
-                data = JSON.parse(data);
-                let cardprefixnametable = data.cardprefixnametable;
-                let num2cardillustnametable = data.num2cardillustnametable;
-                document.getElementById('cardprefixnametable').value = cardprefixnametable;
-                document.getElementById('num2cardillustnametable').value = num2cardillustnametable;
-            }
+        return requestTextItem('cardmode', retrxt, itemInfo).done(function (data) {
+            data = JSON.parse(data);
+            let cardprefixnametable = data.cardprefixnametable;
+            let num2cardillustnametable = data.num2cardillustnametable;
+            document.getElementById('cardprefixnametable').value = cardprefixnametable;
+            document.getElementById('num2cardillustnametable').value = num2cardillustnametable;
         });
     }
 
     function hatmode() {
-        let status = 'hatmode';
         let retrxt = document.getElementById('Item_mode').value;
         let itemInfo = document.getElementById('itemInfo').value;
-        $.ajax({
-            type: "POST",
-            url: '/textItem/',
-            data: {
-                csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val(),
-                retrxt: retrxt.value,
-                status: status,
-                retrxt: retrxt,
-                itemInfo: itemInfo,
-            },
-            success: function (data) {
-                data = JSON.parse(data);
-                let accessoryid = data.accessoryid;
-                let accname = data.accname;
-                document.getElementById('accessoryid').value = accessoryid;
-                document.getElementById('accname').value = accname;
-            }
+        return requestTextItem('hatmode', retrxt, itemInfo).done(function (data) {
+            data = JSON.parse(data);
+            let accessoryid = data.accessoryid;
+            let accname = data.accname;
+            document.getElementById('accessoryid').value = accessoryid;
+            document.getElementById('accname').value = accname;
         });
+    }
+
+    function runAllModes() {
+        textmode()
+            .then(function () {
+                return itemmode();
+            })
+            .then(function () {
+                return hatmode();
+            })
+            .then(function () {
+                return cardmode();
+            });
     }
 
     function copyToClipBoard(id) {
@@ -161,10 +145,7 @@
                     <summary>Text</summary>
                     <textarea id="Text_mode" style="width: 70%;height: 200px">text</textarea><br/>
                     <textarea id="Item_mode" style="width: 70%;height: 200px">itemdb</textarea><br/>
-                    <button onclick="textmode()">文本轉換</button>
-                    <button onclick="itemmode()">view值帶入</button>
-                    <button onclick="hatmode()">頭飾文本產生</button>
-                    <button onclick="cardmode()">卡片文本產生</button>
+                    <button onclick="runAllModes()">文本轉換 + view值帶入 + 頭飾/卡片文本產生</button>
                 </details>
                 <a></a>
             </td>
