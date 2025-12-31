@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+import re
 
 from django.core import serializers
 from django.http import HttpResponse
@@ -314,6 +315,40 @@ def text_Item(request):
         if text:
             resText = strfilter(text)
             resTextList = resText.split('\n')
+            cleaned_lines = []
+            itemdb_lines = []
+            resource_override = ''
+            header_present = False
+            for line in resTextList:
+                stripped = line.strip()
+                if not stripped:
+                    cleaned_lines.append(line)
+                    continue
+                if re.match(r'^\d+#\d*$', stripped):
+                    header_present = True
+                    cleaned_lines.append(stripped)
+                    continue
+                match = re.match(r'^圖檔套用\s*(\d+)$', stripped)
+                if match:
+                    resource_override = match.group(1)
+                    continue
+                if ',' in stripped:
+                    parts = stripped.split(',')
+                    if len(parts) >= 3 and parts[0].strip().isdigit():
+                        itemdb_lines.append(stripped)
+                        continue
+                cleaned_lines.append(stripped)
+            if itemdb_lines and not header_present:
+                first_parts = itemdb_lines[0].split(',')
+                item_id = first_parts[0].strip()
+                resource_name = resource_override
+                if not resource_name and len(first_parts) > 1 and first_parts[1].strip().isdigit():
+                    resource_name = first_parts[1].strip()
+                if resource_name:
+                    cleaned_lines.insert(0, f"{item_id}#{resource_name}")
+                else:
+                    cleaned_lines.insert(0, f"{item_id}#")
+            resTextList = cleaned_lines
             dataitem = ''
             itemInfo += (r'local tbl = {' + '\n')
             itemInfoShow = ''
