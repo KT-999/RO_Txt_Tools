@@ -485,7 +485,7 @@ def text_Item(request):
                         if itemMap.get(item):
                             itemfor = '		ClassNum = ' + itemMap.get(item)[1]
                     if 'slotCount' in itemfor:
-                        itemfor = '		slotCount = ' + itemMap.get(item)[2]
+                        itemfor = '		slotCount = ' + itemMap.get(item)[2] + ','
                     if 'unidentifiedDisplayName' in itemfor:
                         if itemMap.get(item):
                             itemfor = '		unidentifiedDisplayName = "' + strfilter(itemMap.get(item)[0]) + '",'
@@ -506,7 +506,7 @@ def text_Item(request):
                 if itemdb:
                     itemList = itemdb.split(',')
                     if itemList[3] == '5' and int(itemList[18]) > 100:
-                        accessoryid += '  ACCESSORY_' + itemList[0] + ' = ' + itemList[18] + '\n'
+                        accessoryid += '  ACCESSORY_' + itemList[0] + ' = ' + itemList[18] + "," + '\n'
                         accname += ' [ACCESSORY_IDs.ACCESSORY_' + itemList[0] + ']= "_' + itemList[0] + '",\n'
         ret = {'accessoryid': accessoryid, 'accname': accname, 'url': '/textItem/', 'err': err}
         return HttpResponse(json.dumps(ret))
@@ -581,7 +581,7 @@ def download_page(request):
                     itemInfo += ('			"' + caption_scan + '",' + '\n')
             caption_scanList = ''
             itemInfo += (r'		},' + '\n')
-            itemInfo += (r'		slotCount = ' + item.card + r',' + '\n')
+            itemInfo += (r'		slotCount = ' + item.card + ',' + '\n')
             itemInfo += (r'		ClassNum = ' + item.view + '\n')
             itemInfo += (r'	},' + '\n')
             # 頭飾
