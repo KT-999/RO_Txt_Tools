@@ -308,6 +308,11 @@ def text_Item(request):
     resText = ''
     itemInfo = ''
     item = ''
+
+    def trim_iteminfo_text(value):
+        if value is None:
+            return value
+        return value.strip(' \u3000')
     if status == "textmode":
         text = request.POST.get('retrxt')
         req_itemInfo = request.POST.get('itemInfo')
@@ -420,21 +425,24 @@ def text_Item(request):
                     itemInfoShow += (r'		identifiedDescriptionName = {' + '\n')
                     pass
                 elif str and str != ' ' and str != '    ':
-                    if '(紅字)' in str:
-                        itemInfo += ('			"^ff0000' + str.replace('	', '').replace(' ', '').replace('(紅字)',
-                                                                                                               '') + '^000000",' + '\n')
-                        itemInfoShow += (
-                                '			"^ff0000' + str.replace('	', '').replace(' ', '').replace('(紅字)',
-                                                                                                          '') + '^000000",' + '\n')
-                    elif '(藍字)' in str:
-                        itemInfo += ('			"^0000ff' + str.replace('	', '').replace(' ', '').replace('(藍字)',
-                                                                                                               '') + '^000000",' + '\n')
-                        itemInfoShow += (
-                                '			"^0000ff' + str.replace('	', '').replace(' ', '').replace('(藍字)',
-                                                                                                          '') + '^000000",' + '\n')
+                    trimmed_text = trim_iteminfo_text(str)
+                    if not trimmed_text:
+                        continue
+                    if '(紅字)' in trimmed_text:
+                        cleaned_text = trim_iteminfo_text(trimmed_text.replace('(紅字)', ''))
+                        if not cleaned_text:
+                            continue
+                        itemInfo += ('			"^ff0000' + cleaned_text + '^000000",' + '\n')
+                        itemInfoShow += ('			"^ff0000' + cleaned_text + '^000000",' + '\n')
+                    elif '(藍字)' in trimmed_text:
+                        cleaned_text = trim_iteminfo_text(trimmed_text.replace('(藍字)', ''))
+                        if not cleaned_text:
+                            continue
+                        itemInfo += ('			"^0000ff' + cleaned_text + '^000000",' + '\n')
+                        itemInfoShow += ('			"^0000ff' + cleaned_text + '^000000",' + '\n')
                     else:
-                        itemInfo += ('			"' + str.replace('	', '').replace(' ', '') + '",' + '\n')
-                        itemInfoShow += ('			"' + str.replace('	', '').replace(' ', '') + '",' + '\n')
+                        itemInfo += ('			"' + trimmed_text + '",' + '\n')
+                        itemInfoShow += ('			"' + trimmed_text + '",' + '\n')
             if itemInfoShow:
                 itemInfo += '		},\n'
                 itemInfo += itemInfoShow
