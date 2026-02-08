@@ -472,6 +472,10 @@ def text_Item(request):
                 for resText_split in resTextList:
                     if resText_split:
                         resText_reList = resText_split.split(',')
+                        if len(resText_reList) > 10 and len(resText_reList) > 2:
+                            item_name = resText_reList[2]
+                            if '[服裝]' in item_name or '[簽到版]' in item_name:
+                                resText_reList[10] = '0'
                         # if resText_reList[10]:
                         #     print(resText_reList[0] + ' : ' + resText_reList[2] + ' : ' + resText_reList[10])
                         # else:
