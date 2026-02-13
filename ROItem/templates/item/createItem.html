@@ -7,8 +7,98 @@
     <title>Title</title>
 </head>
 <script>
+    function normalizeHexColor(colorValue) {
+        if (!colorValue) {
+            return '000000';
+        }
+        let color = colorValue.trim().toUpperCase();
+        if (color[0] === '#') {
+            color = color.slice(1);
+        }
+        if (/^[0-9A-F]{6}$/.test(color)) {
+            return color;
+        }
+        let rgbMatch = colorValue.match(/\d+/g);
+        if (rgbMatch && rgbMatch.length >= 3) {
+            return rgbMatch.slice(0, 3).map(function (num) {
+                return Number(num).toString(16).padStart(2, '0');
+            }).join('').toUpperCase();
+        }
+        return '000000';
+    }
+
+    function serializeCaptionNode(node, currentColor) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            if (!node.nodeValue) {
+                return '';
+            }
+            if (currentColor === '000000') {
+                return node.nodeValue;
+            }
+            return '^' + currentColor + node.nodeValue + '^000000';
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+            return '';
+        }
+
+        if (node.tagName === 'BR') {
+            return '\n';
+        }
+
+        let nodeColor = currentColor;
+        if (node.tagName === 'FONT' && node.getAttribute('color')) {
+            nodeColor = normalizeHexColor(node.getAttribute('color'));
+        } else if (node.style && node.style.color) {
+            nodeColor = normalizeHexColor(node.style.color);
+        }
+
+        let text = '';
+        for (let i = 0; i < node.childNodes.length; i++) {
+            text += serializeCaptionNode(node.childNodes[i], nodeColor);
+        }
+
+        if (node.tagName === 'DIV' || node.tagName === 'P') {
+            text += '\n';
+        }
+        return text;
+    }
+
+    function parseCaptionForPreview(captionText) {
+        let escapedCaption = captionText
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        let colorized = escapedCaption.replace(/\^([0-9A-Fa-f]{6})([\s\S]*?)\^000000/g, function (_, color, text) {
+            return '<span style="color:#' + color.toUpperCase() + ';">' + text + '</span>';
+        });
+        return colorized.replace(/\n/g, '<br>');
+    }
+
+    function updateCaptionValue() {
+        let editor = document.getElementById('captionEditor');
+        let captionInput = document.getElementById('caption');
+        let preview = document.getElementById('captionPreview');
+        let serializedText = '';
+        for (let i = 0; i < editor.childNodes.length; i++) {
+            serializedText += serializeCaptionNode(editor.childNodes[i], '000000');
+        }
+        serializedText = serializedText.replace(/\n+$/, '');
+        captionInput.value = serializedText;
+        preview.innerHTML = parseCaptionForPreview(serializedText);
+    }
+
+    function applyCaptionColor() {
+        let colorPicker = document.getElementById('captionColorPicker');
+        let editor = document.getElementById('captionEditor');
+        editor.focus();
+        document.execCommand('styleWithCSS', false, true);
+        document.execCommand('foreColor', false, colorPicker.value);
+        updateCaptionValue();
+    }
+
     function createItem() {
-        var itemShow = document.getElementById('item');
+        updateCaptionValue();
 
         $.ajax({
             url: '/createitem/',
@@ -33,6 +123,8 @@
                     alert(status);
                     itemShow.innerHTML = "";
                     viewShow.innerHTML = "";
+                    document.getElementById('captionEditor').innerHTML = '';
+                    updateCaptionValue();
                 } else if (status == "此物品編號已存在" || status == "請輸入完整物品資訊" || status == "item只可為數字") {
                     itemShow.innerHTML = status;
                 } else if (status == "view只可為數字") {
@@ -46,6 +138,9 @@
             }
         })
     }
+    document.addEventListener('DOMContentLoaded', function () {
+        updateCaptionValue();
+    });
 </script>
 <body>
 <div style="display: none" id="reload">
@@ -84,11 +179,17 @@
                 <a>說明</a>
             </td>
             <td>
-                <textarea id="caption" name="caption" style="width: 900px; height: 350px"></textarea>
-{#                <div style=" border: 1px solid #cbcbcb;width: 300px; height: 350px;overflow-y: scroll" contenteditable="true">#}
-{#                    <div style="color: #ff0000; float: left">123</div><div>test</div>#}
-
+                <input type="hidden" id="caption" name="caption">
+                <div style="margin-bottom: 8px">
+                    <input type="color" id="captionColorPicker" value="#000000">
+                    <button type="button" onclick="applyCaptionColor()">套用顏色</button>
                 </div>
+                <div id="captionEditor" contenteditable="true"
+                     style="width: 900px; height: 220px; border: 1px solid #cbcbcb; overflow-y: auto; padding: 6px"
+                     oninput="updateCaptionValue()" onkeyup="updateCaptionValue()"></div>
+                <div style="margin-top: 8px">即時預覽</div>
+                <div id="captionPreview"
+                     style="width: 900px; height: 120px; border: 1px solid #cbcbcb; overflow-y: auto; padding: 6px; white-space: normal"></div>
             </td>
 
         </tr>
