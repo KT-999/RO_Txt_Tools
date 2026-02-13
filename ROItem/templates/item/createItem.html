@@ -63,29 +63,15 @@
         }
         return text;
     }
-
-    function parseCaptionForPreview(captionText) {
-        let escapedCaption = captionText
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-        let colorized = escapedCaption.replace(/\^([0-9A-Fa-f]{6})([\s\S]*?)\^000000/g, function (_, color, text) {
-            return '<span style="color:#' + color.toUpperCase() + ';">' + text + '</span>';
-        });
-        return colorized.replace(/\n/g, '<br>');
-    }
-
     function updateCaptionValue() {
         let editor = document.getElementById('captionEditor');
         let captionInput = document.getElementById('caption');
-        let preview = document.getElementById('captionPreview');
         let serializedText = '';
         for (let i = 0; i < editor.childNodes.length; i++) {
             serializedText += serializeCaptionNode(editor.childNodes[i], '000000');
         }
         serializedText = serializedText.replace(/\n+$/, '');
         captionInput.value = serializedText;
-        preview.innerHTML = parseCaptionForPreview(serializedText);
     }
 
     function applyCaptionColor() {
@@ -187,9 +173,6 @@
                 <div id="captionEditor" contenteditable="true"
                      style="width: 900px; height: 220px; border: 1px solid #cbcbcb; overflow-y: auto; padding: 6px"
                      oninput="updateCaptionValue()" onkeyup="updateCaptionValue()"></div>
-                <div style="margin-top: 8px">即時預覽</div>
-                <div id="captionPreview"
-                     style="width: 900px; height: 120px; border: 1px solid #cbcbcb; overflow-y: auto; padding: 6px; white-space: normal"></div>
             </td>
 
         </tr>
